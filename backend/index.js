@@ -1,40 +1,53 @@
-const express = require("express");
-const cors = require("cors");
-
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-// Test route
-app.get("/", (req, res) => {
-  res.send("Backend is running 🚀");
-});
-
-// MAIN API (IMPORTANT)
 app.post("/api/answer", (req, res) => {
   const { answer } = req.body;
 
+  // ❌ Check empty input
+  if (!answer || answer.trim() === "") {
+    return res.json({
+      feedback: "❌ Please write an answer before submitting."
+    });
+  }
+
+  let score = 5;
+  let strengths = [];
+  let weaknesses = [];
+
+  // ✅ Simple keyword-based evaluation
+  if (answer.toLowerCase().includes("database")) {
+    strengths.push("Mentions database");
+    score += 1;
+  } else {
+    weaknesses.push("Missing database design");
+  }
+
+  if (answer.toLowerCase().includes("cache")) {
+    strengths.push("Includes caching");
+    score += 1;
+  } else {
+    weaknesses.push("No caching strategy");
+  }
+
+  if (answer.toLowerCase().includes("load balancer")) {
+    strengths.push("Includes load balancing");
+    score += 1;
+  } else {
+    weaknesses.push("Missing load balancing");
+  }
+
   const feedback = `
-Score: 7/10
+Score: ${score}/10
 
 Strengths:
-- Good basic understanding
-- Mentions key components
+${strengths.length ? strengths.join("\n") : "Basic attempt"}
 
-Weakness:
-- Missing scalability discussion
-- No database design
-- No caching strategy
+Weaknesses:
+${weaknesses.join("\n")}
 
 Suggestion:
-- Talk about load balancer
-- Add database sharding
-- Mention caching (Redis)
+- Think about scalability
+- Add system components
+- Improve architecture explanation
 `;
 
   res.json({ feedback });
-});
-
-app.listen(5000, () => {
-  console.log("Server running on port 5000");
 });
