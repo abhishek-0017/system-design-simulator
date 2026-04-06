@@ -28,20 +28,39 @@ function App() {
     }
   };
 
-  // 🎤 Voice Input
+  // 🎤 FIXED VOICE INPUT
   const startListening = () => {
-    if (!window.webkitSpeechRecognition) {
-      alert("Speech Recognition not supported in this browser");
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert("❌ Browser does not support speech recognition");
       return;
     }
 
-    const recognition = new window.webkitSpeechRecognition();
-    recognition.continuous = false;
+    const recognition = new SpeechRecognition();
+
     recognition.lang = "en-US";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      console.log("🎤 Listening...");
+    };
 
     recognition.onresult = (event) => {
       const speechText = event.results[0][0].transcript;
-      setAnswer(speechText);
+      console.log("You said:", speechText);
+      setAnswer(speechText); // ✅ fills textarea
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Error:", event.error);
+      alert("❌ Mic error: " + event.error);
+    };
+
+    recognition.onend = () => {
+      console.log("🎤 Stopped listening");
     };
 
     recognition.start();
