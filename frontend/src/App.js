@@ -28,7 +28,7 @@ function App() {
     }
   };
 
-  // 🎤 FIXED VOICE INPUT
+  // 🎤 FINAL VOICE INPUT (ROBUST)
   const startListening = () => {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -41,22 +41,33 @@ function App() {
     const recognition = new SpeechRecognition();
 
     recognition.lang = "en-US";
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
+    recognition.interimResults = true;
+    recognition.continuous = false;
 
     recognition.onstart = () => {
-      console.log("🎤 Listening...");
+      console.log("🎤 Listening... Speak now!");
+      alert("🎤 Speak now...");
     };
 
     recognition.onresult = (event) => {
-      const speechText = event.results[0][0].transcript;
-      console.log("You said:", speechText);
-      setAnswer(speechText); // ✅ fills textarea
+      let transcript = "";
+
+      for (let i = 0; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+
+      console.log("You said:", transcript);
+      setAnswer(transcript); // ✅ fills textarea
     };
 
     recognition.onerror = (event) => {
       console.error("Error:", event.error);
-      alert("❌ Mic error: " + event.error);
+
+      if (event.error === "no-speech") {
+        alert("❌ No speech detected. Try again and speak clearly.");
+      } else {
+        alert("❌ Mic error: " + event.error);
+      }
     };
 
     recognition.onend = () => {
