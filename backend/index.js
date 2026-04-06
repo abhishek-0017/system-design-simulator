@@ -1,10 +1,23 @@
+const express = require("express");
+const cors = require("cors");
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+// Test route
+app.get("/", (req, res) => {
+  res.send("Backend is running 🚀");
+});
+
+// Main API
 app.post("/api/answer", (req, res) => {
   const { answer } = req.body;
 
-  // ❌ Check empty input
   if (!answer || answer.trim() === "") {
     return res.json({
-      feedback: "❌ Please write an answer before submitting."
+      feedback: "❌ Please write an answer before submitting.",
     });
   }
 
@@ -12,7 +25,6 @@ app.post("/api/answer", (req, res) => {
   let strengths = [];
   let weaknesses = [];
 
-  // ✅ Simple keyword-based evaluation
   if (answer.toLowerCase().includes("database")) {
     strengths.push("Mentions database");
     score += 1;
@@ -50,4 +62,8 @@ Suggestion:
 `;
 
   res.json({ feedback });
+});
+
+app.listen(5000, () => {
+  console.log("Server running on port 5000");
 });
