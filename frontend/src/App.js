@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import "./App.css";
 
 function App() {
   const [answer, setAnswer] = useState("");
@@ -28,7 +29,7 @@ function App() {
     }
   };
 
-  // 🎤 FINAL VOICE INPUT (ROBUST)
+  // 🎤 Voice Input
   const startListening = () => {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -42,10 +43,8 @@ function App() {
 
     recognition.lang = "en-US";
     recognition.interimResults = true;
-    recognition.continuous = false;
 
     recognition.onstart = () => {
-      console.log("🎤 Listening... Speak now!");
       alert("🎤 Speak now...");
     };
 
@@ -56,29 +55,22 @@ function App() {
         transcript += event.results[i][0].transcript;
       }
 
-      console.log("You said:", transcript);
-      setAnswer(transcript); // ✅ fills textarea
+      setAnswer(transcript);
     };
 
     recognition.onerror = (event) => {
-      console.error("Error:", event.error);
-
       if (event.error === "no-speech") {
-        alert("❌ No speech detected. Try again and speak clearly.");
+        alert("❌ No speech detected");
       } else {
-        alert("❌ Mic error: " + event.error);
+        alert("❌ Mic error");
       }
-    };
-
-    recognition.onend = () => {
-      console.log("🎤 Stopped listening");
     };
 
     recognition.start();
   };
 
   return (
-    <div style={{ padding: "20px", fontFamily: "Arial" }}>
+    <div className="container">
       <h1>🚀 System Design Interview Simulator</h1>
 
       <h3>Question:</h3>
@@ -86,7 +78,6 @@ function App() {
 
       <textarea
         rows="6"
-        cols="60"
         placeholder="Write your system design answer..."
         value={answer}
         onChange={(e) => setAnswer(e.target.value)}
@@ -94,11 +85,8 @@ function App() {
 
       <br /><br />
 
-      <button onClick={startListening}>🎤 Speak Answer</button>
-
-      <br /><br />
-
-      <button onClick={handleSubmit}>Submit Answer</button>
+      <button onClick={startListening}>🎤 Speak</button>
+      <button onClick={handleSubmit}>Submit</button>
 
       <h3>AI Feedback:</h3>
       <pre>{feedback}</pre>
