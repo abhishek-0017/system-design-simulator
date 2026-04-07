@@ -1,17 +1,11 @@
 import React, { useState } from "react";
-import "./App.css";
 
 function App() {
   const [answer, setAnswer] = useState("");
   const [feedback, setFeedback] = useState("");
 
-  const question = "Design a URL Shortener";
-
   const handleSubmit = async () => {
-    if (!answer || answer.trim() === "") {
-      setFeedback("❌ Please write an answer before submitting.");
-      return;
-    }
+    setFeedback("⏳ Generating feedback...");
 
     try {
       const res = await fetch("https://system-design-backend-zju7.onrender.com/api/answer", {
@@ -23,69 +17,38 @@ function App() {
       });
 
       const data = await res.json();
-      setFeedback(data.feedback);
-    } catch (err) {
-      setFeedback("⚠️ Server error. Try again.");
-    }
-  };
 
-  // 🎤 Voice Input
-  const startListening = () => {
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
+      console.log("FRONTEND RESPONSE:", data); // 🔥 DEBUG
 
-    if (!SpeechRecognition) {
-      alert("❌ Browser does not support speech recognition");
-      return;
-    }
-
-    const recognition = new SpeechRecognition();
-
-    recognition.lang = "en-US";
-    recognition.interimResults = true;
-
-    recognition.onstart = () => {
-      alert("🎤 Speak now...");
-    };
-
-    recognition.onresult = (event) => {
-      let transcript = "";
-
-      for (let i = 0; i < event.results.length; i++) {
-        transcript += event.results[i][0].transcript;
-      }
-
-      setAnswer(transcript);
-    };
-
-    recognition.onerror = (event) => {
-      if (event.error === "no-speech") {
-        alert("❌ No speech detected");
+      if (data.feedback) {
+        setFeedback(data.feedback);
       } else {
-        alert("❌ Mic error");
+        setFeedback("❌ No feedback received from server");
       }
-    };
 
-    recognition.start();
+    } catch (err) {
+      console.error(err);
+      setFeedback("❌ Error connecting to server");
+    }
   };
 
   return (
-    <div className="container">
+    <div style={{ padding: "30px", fontFamily: "Arial" }}>
       <h1>🚀 System Design Interview Simulator</h1>
 
       <h3>Question:</h3>
-      <p>{question}</p>
+      <p>Design a URL Shortener</p>
 
       <textarea
-        rows="6"
-        placeholder="Write your system design answer..."
+        rows="10"
+        cols="80"
+        placeholder="Write your answer here..."
         value={answer}
         onChange={(e) => setAnswer(e.target.value)}
       />
 
       <br /><br />
 
-      <button onClick={startListening}>🎤 Speak</button>
       <button onClick={handleSubmit}>Submit</button>
 
       <h3>AI Feedback:</h3>
