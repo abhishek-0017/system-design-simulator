@@ -1,17 +1,23 @@
 const express = require("express");
-require("dotenv").config();
+const dotenv = require("dotenv");
+
+dotenv.config();
 
 const app = express();
 app.use(express.json());
 
-// ✅ ENV CHECK
+// ✅ VERY IMPORTANT (fixes your error)
+const cors = require("cors");
+app.use(cors());
+
+const PORT = process.env.PORT || 5000;
+
 console.log("ENV CHECK:", process.env.OPENAI_API_KEY ? "FOUND ✅" : "NOT FOUND ❌");
 
 app.post("/analyze", async (req, res) => {
   try {
     const { answer } = req.body;
 
-    // ✅ Using built-in fetch (Node 18+)
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -22,8 +28,12 @@ app.post("/analyze", async (req, res) => {
         model: "gpt-4o-mini",
         messages: [
           {
+            role: "system",
+            content: "You are a system design interviewer. Give score, strengths, weaknesses, and improvements."
+          },
+          {
             role: "user",
-            content: `Evaluate this system design answer and give score out of 10 with improvements:\n\n${answer}`
+            content: answer
           }
         ]
       })
@@ -31,19 +41,15 @@ app.post("/analyze", async (req, res) => {
 
     const data = await response.json();
 
-    console.log("📦 API RESPONSE:", data);
-
     res.json({
-      result: data.choices?.[0]?.message?.content || "No response from AI"
+      result: data.choices?.[0]?.message?.content || "No response"
     });
 
   } catch (err) {
-    console.error("❌ ERROR:", err);
-    res.status(500).json({ error: "Server error" });
+    console.error(err);
+    res.json({ result: "Server error" });
   }
 });
-
-const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
