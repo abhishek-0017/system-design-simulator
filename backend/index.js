@@ -1,18 +1,21 @@
 const express = require("express");
 const dotenv = require("dotenv");
+const cors = require("cors");
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
+app.use(cors()); // ✅ FIX CORS
 
-// ✅ VERY IMPORTANT (fixes your error)
-const cors = require("cors");
-app.use(cors());
+const PORT = process.env.PORT || 10000;
 
-const PORT = process.env.PORT || 5000;
-
+// ✅ Check API key
 console.log("ENV CHECK:", process.env.OPENAI_API_KEY ? "FOUND ✅" : "NOT FOUND ❌");
+
+app.get("/", (req, res) => {
+  res.send("Backend is running 🚀");
+});
 
 app.post("/analyze", async (req, res) => {
   try {
@@ -29,7 +32,8 @@ app.post("/analyze", async (req, res) => {
         messages: [
           {
             role: "system",
-            content: "You are a system design interviewer. Give score, strengths, weaknesses, and improvements."
+            content:
+              "You are a strict system design interviewer. Give output in this format:\n\nScore: X/10\n\nStrengths:\n- ...\n\nWeaknesses:\n- ...\n\nSuggestions:\n- ..."
           },
           {
             role: "user",
