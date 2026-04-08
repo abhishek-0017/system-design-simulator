@@ -1,77 +1,50 @@
-const express = require("express");
-const cors = require("cors");
-require("dotenv").config();
+import express from "express";
+import fetch from "node-fetch";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
-
-app.use(cors());
 app.use(express.json());
 
-// 🔥 DEBUG LOGS (VERY IMPORTANT)
-console.log("🔥 SERVER STARTED NEW VERSION");
-console.log("ENV VALUE:", process.env.OPENROUTER_API_KEY);
+// ✅ DEBUG LOG (VERY IMPORTANT)
+console.log("ENV CHECK:", process.env.OPENAI_API_KEY ? "FOUND ✅" : "NOT FOUND ❌");
 
-// Test route
-app.get("/", (req, res) => {
-  res.send("Backend running 🚀");
-});
-
-// MAIN API
-app.post("/api/answer", async (req, res) => {
-  const { answer } = req.body;
-
-  if (!answer || answer.trim() === "") {
-    return res.json({
-      feedback: "❌ Please write an answer.",
-    });
-  }
-
+app.post("/analyze", async (req, res) => {
   try {
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const { answer } = req.body;
+
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "openai/gpt-3.5-turbo",
+        model: "gpt-4o-mini",
         messages: [
           {
-            role: "system",
-            content:
-              "You are a system design interviewer. Give score out of 10, strengths, weaknesses, and suggestions.",
-          },
-          {
             role: "user",
-            content: answer,
-          },
-        ],
-      }),
+            content: `Evaluate this system design answer:\n${answer}`
+          }
+        ]
+      })
     });
 
     const data = await response.json();
-
     console.log("📦 API RESPONSE:", data);
 
-    if (!data.choices) {
-      return res.json({
-        feedback: "⚠️ API error: " + JSON.stringify(data),
-      });
-    }
-
-    const feedback = data.choices[0].message.content;
-
-    res.json({ feedback });
+    res.json({
+      result: data.choices?.[0]?.message?.content || "No response"
+    });
 
   } catch (err) {
-    console.error("❌ ERROR:", err);
-    res.json({
-      feedback: "⚠️ Server error",
-    });
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
-// START SERVER
-app.listen(5000, () => {
-  console.log("🚀 Server running on port 5000");
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });
