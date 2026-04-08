@@ -2,38 +2,32 @@ import React, { useState } from "react";
 
 function App() {
   const [answer, setAnswer] = useState("");
-  const [feedback, setFeedback] = useState("");
+  const [result, setResult] = useState("");
 
   const handleSubmit = async () => {
-    setFeedback("⏳ Generating feedback...");
+    setResult("⏳ Generating feedback...");
 
     try {
-      const res = await fetch("https://system-design-backend-zju7.onrender.com/api/answer", {
+      const res = await fetch("https://system-design-backend-zju7.onrender.com/analyze", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify({ answer }),
+        body: JSON.stringify({ answer })
       });
 
       const data = await res.json();
 
-      console.log("FRONTEND RESPONSE:", data); // 🔥 DEBUG
-
-      if (data.feedback) {
-        setFeedback(data.feedback);
-      } else {
-        setFeedback("❌ No feedback received from server");
-      }
+      setResult(data.result || "No response");
 
     } catch (err) {
       console.error(err);
-      setFeedback("❌ Error connecting to server");
+      setResult("❌ Error connecting to backend");
     }
   };
 
   return (
-    <div style={{ padding: "30px", fontFamily: "Arial" }}>
+    <div style={{ padding: "30px" }}>
       <h1>🚀 System Design Interview Simulator</h1>
 
       <h3>Question:</h3>
@@ -42,9 +36,9 @@ function App() {
       <textarea
         rows="10"
         cols="80"
-        placeholder="Write your answer here..."
         value={answer}
         onChange={(e) => setAnswer(e.target.value)}
+        placeholder="Write your answer..."
       />
 
       <br /><br />
@@ -52,7 +46,7 @@ function App() {
       <button onClick={handleSubmit}>Submit</button>
 
       <h3>AI Feedback:</h3>
-      <pre>{feedback}</pre>
+      <pre>{result}</pre>
     </div>
   );
 }
