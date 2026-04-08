@@ -6,11 +6,10 @@ dotenv.config();
 
 const app = express();
 app.use(express.json());
-app.use(cors()); // ✅ FIX CORS
+app.use(cors());
 
 const PORT = process.env.PORT || 10000;
 
-// ✅ Check API key
 console.log("ENV CHECK:", process.env.OPENAI_API_KEY ? "FOUND ✅" : "NOT FOUND ❌");
 
 app.get("/", (req, res) => {
@@ -20,6 +19,8 @@ app.get("/", (req, res) => {
 app.post("/analyze", async (req, res) => {
   try {
     const { answer } = req.body;
+
+    console.log("USER INPUT:", answer);
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -32,12 +33,11 @@ app.post("/analyze", async (req, res) => {
         messages: [
           {
             role: "system",
-            content:
-              "You are a strict system design interviewer. Give output in this format:\n\nScore: X/10\n\nStrengths:\n- ...\n\nWeaknesses:\n- ...\n\nSuggestions:\n- ..."
+            content: "You are a system design interviewer. Give score, strengths, weaknesses, suggestions."
           },
           {
             role: "user",
-            content: answer
+            content: answer || "Design a URL shortener"
           }
         ]
       })
@@ -45,13 +45,29 @@ app.post("/analyze", async (req, res) => {
 
     const data = await response.json();
 
+    console.log("OPENAI FULL RESPONSE:", JSON.stringify(data, null, 2));
+
+    // 🚨 HANDLE ERROR PROPERLY
+    if (!response.ok) {
+      return res.json({
+        result: "❌ OpenAI API Error: " + (data.error?.message || "Unknown error")
+      });
+    }
+
+    // 🚨 HANDLE EMPTY RESPONSE
+    if (!data.choices || data.choices.length === 0) {
+      return res.json({
+        result: "❌ No choices returned from OpenAI"
+      });
+    }
+
     res.json({
-      result: data.choices?.[0]?.message?.content || "No response"
+      result: data.choices[0].message.content
     });
 
   } catch (err) {
-    console.error(err);
-    res.json({ result: "Server error" });
+    console.error("SERVER ERROR:", err);
+    res.json({ result: "❌ Server crashed" });
   }
 });
 
