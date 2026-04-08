@@ -1,13 +1,11 @@
-import express from "express";
-import fetch from "node-fetch";
-import dotenv from "dotenv";
-
-dotenv.config();
+const express = require("express");
+const fetch = require("node-fetch");
+require("dotenv").config();
 
 const app = express();
 app.use(express.json());
 
-// ✅ DEBUG LOG (VERY IMPORTANT)
+// ✅ DEBUG
 console.log("ENV CHECK:", process.env.OPENAI_API_KEY ? "FOUND ✅" : "NOT FOUND ❌");
 
 app.post("/analyze", async (req, res) => {
